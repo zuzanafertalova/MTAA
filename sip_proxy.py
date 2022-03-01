@@ -85,14 +85,21 @@ class SIPProxy(BaseRequestHandler):
         self.data = None
         self.socket = None
 
+    # driver funkcia na spracovanie SIP requestov
     def process_request(self):
         if len(self.data) > 0:
+            # uloz aky request prisiel do premennej request_uri
             request_uri = self.data[0]
 
+            # podla regexu najdi typ requestu a spracuj podla neho poziadavku
+
+            # ked pride REGISTER -> registracia pouzivatela do ustredne
             if SIP_REGISTER.search(request_uri):
                 self.handle_sip_register()
+            # INVITE - niekto zacal hovor
             elif SIP_INVITE.search(request_uri):
                 self.handle_sip_invite()
+            # ACK - potvrdenie napr. zacatia hovoru a pod.
             elif SIP_ACK.search(request_uri):
                 self.handle_sip_ack()
             elif SIP_BYE.search(request_uri):
@@ -117,9 +124,12 @@ class SIPProxy(BaseRequestHandler):
                 self.send_response("200 POHODKA")
             elif SIP_NOTIFY.search(request_uri):
                 self.send_response("200 POHODKA")
+            # ak sa nejededna o ziaden z kodov vyssie, posli kod do funckie na spracuvanie
+            # SIP kodov, moze sem napr. dojst ked softphone vytaca a prichadza "Rining", "Trying" a podobne
             elif SIP_CODE.search(request_uri):
                 self.handle_sip_code()
 
+    # funkcia na spracuvanie SIP kodov
     def handle_sip_code(self):
         sip_origin = self.get_sip_origin()
 
@@ -137,11 +147,12 @@ class SIPProxy(BaseRequestHandler):
 
                 sock.sendto(text.encode(), client_addr)
 
-
+    # vypise aktualny obsah registrovanych pouzivatelov v ustredni
     def dump_registrar(self):
         for data in SIP_REGISTRAR.items():
             print(data)
 
+    # funkcia na registraciu uzivatelov do ustredne
     def handle_sip_register(self):
         sip_from = ""
         sip_contact = ""
@@ -196,6 +207,7 @@ class SIPProxy(BaseRequestHandler):
         self.dump_registrar()
         self.send_response("200 POHODKA")
 
+    # funkcia na spracovanie INVITE SIP
     def handle_sip_invite(self):
         print("Got INVITE request")
 
